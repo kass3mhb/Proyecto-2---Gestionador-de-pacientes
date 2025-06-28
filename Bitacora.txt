@@ -1,0 +1,15 @@
+[bitacora 27/06/2025 11:30pm - Kassem Hojeige] 
+
+He montado lo que vendria siendo todo lo que es la base del proyecto, cree la aplicacion de NetBeans "Gestor_pacientes" con dos paquetes: gestor_pacientes y Estructuras.
+
+En gestor_pacientes estara la clase main con todos sus metodos estaticos para que solo funcionen alli
+
+Y en Estructuras estaran las estructuras de datos ordenadas para que haya orden, las que meti por ahora fueron ALVTree, BinarySearchTree y solo me estaria faltando la de Cola.
+
+Teniendo ya todo ordenado y estructurado he programado el primer metodo de la parte estetica y que definira el flujo del programa, el metodo menu(); que sera la interfaz principal que te dejara elegir entre las 3 opciones expuestas en el PDF del proyecto.
+
+ System.out.println("1. Gestionar Registro Histórico de Expedientes.");
+ System.out.println("2. Gestionar Cola de Atención Activa.");
+ System.out.println("3. Salir del sistema.");
+
+La idea es que el usuario dependiendo de lo que elija la opcion entre en un Switch y dependiendo de lo que elija corra el metodo correspondiente, si elije el 1 que corra el metodo para gestionar los historicos; Asi mismo con la opcion 2. 
