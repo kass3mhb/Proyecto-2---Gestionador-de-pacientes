@@ -140,8 +140,322 @@ a
 
 Y en cuanto a lo demas, preguntas muy generales en cuanto al uso de correcto de algunas metodlogias en NetBeans y el propio java
 
+[bitacora 29/06/2025 4:30pm] 
+
+Ok, en cuanto a la parte de Gestionar Registro Histórico de Expedientes solo falta el listar todos los registros de pacientes
+
+· Listar todos los registros.
+
+Para ello hemos adaptado el metodo inorder dado por el profesor para que funcione con nuestra clase pacientes, el current.key, lo cambiamos a current.pacientes y para que visualmente sea mas agradable en consola a la vista del usuario corregimos los println. Teniendo esto arreglado y adaptado, en el case 4 del switch de menuRegistros simplemente agregamos un historial.inorder(); y en la consola se muestra algo como
+
+[id 1, datosdelusuario]
+[id 2, datosdelusuario]
+[id 3, datosdelusuario]
+
+Mostrando de forma correcta y enlistados.
+
+En este punto, ya podemos pasar a la parte 2: Gestionar Cola de Atención Activa.
+
+Lo primero sera empezar a modificar el arbol AVL para que funcione con Pacientes, pero antes de ello, empezamos a hacer la interfaz en main.java, asi como funcionaba perfecto menuRegistros(); hicimos un menuCola(); que basicamente es un copy-paste del de registros, solo que en los switch los nuevos metodos que manejaran los datos y el arbol AVL.
+
+Volviendo al arbol, la primera parte de la adaptacion para los pacientes es cambiar su nodo que funcionaba con key a que funcione con Pacientes
+
+    static class NodeAVLTree {
+        Paciente paciente;
+        int height; // Altura del nodo (distancia desde este nodo a la hoja más lejana)
+        NodeAVLTree left, right;
+
+        public NodeAVLTree(Paciente paciente) {
+            this.paciente = paciente;
+            height = 1; // Un nuevo nodo es una hoja, por lo que su altura inicial es 1
+            left = right = null;
+        }
+    }
+
+Y en el metodo insert se hace basicamente lo que se hizo en el arbol binario de busqueda, las key las cambiamos por persona y en comparaciones las cambiamos por persona.getId() o current.persona.getId(); dependiendo, fuimos tanteando purbea y error prueba y error hasta que funcionara correctamente, nuestro metodo quedo algo asi
+
+public void insert(Paciente paciente) {
+        root = recursiveInsert(root, paciente);
+    }
+
+    // Método recursivo para insertar un nodo y rebalancear el árbol AVL.
+    private NodeAVLTree recursiveInsert(NodeAVLTree current, Paciente paciente) {
+        // 1. Realiza la inserción normal de BST
+        if (current == null) {
+            return new NodeAVLTree(paciente);
+        }
+
+        if (paciente.getId() < current.paciente.getId()) {
+            current.left = recursiveInsert(current.left, paciente);
+        } else if (paciente.getId()> current.paciente.getId()) {
+            current.right = recursiveInsert(current.right, paciente);
+        } else { // Claves duplicadas no permitidas en este ejemplo
+            return current;
+        }
+
+        // 2. Actualiza la altura del nodo actual
+        current.height = 1 + max(height(current.left), height(current.right));
+
+        // 3. Obtiene el factor de equilibrio de este nodo para verificar si se desbalanceó
+        int balance = getBalance(current);
+
+        // 4. Si el nodo se desbalanceó, hay 4 casos:
+
+        // Caso Izquierda-Izquierda (LL)
+        if (balance > 1 && paciente.getId() < current.left.paciente.getId()) {
+            return rightRotate(current);
+        }
+
+        // Caso Derecha-Derecha (RR)
+        if (balance < -1 && paciente.getId() > current.right.paciente.getId()) {
+            return leftRotate(current);
+        }
+
+        // Caso Izquierda-Derecha (LR)
+        if (balance > 1 && paciente.getId() > current.left.paciente.getId()) {
+            current.left = leftRotate(current.left);
+            return rightRotate(current);
+        }
+
+        // Caso Derecha-Izquierda (RL)
+        if (balance < -1 && paciente.getId() < current.right.paciente.getId()) {
+            current.right = rightRotate(current.right);
+            return leftRotate(current);
+        }
+
+        // Retorna el nodo (sin cambios si está balanceado)
+        return current;
+    }
+
+Teniendo esto, hicimos nuestro metodo agregarPacienteCola() que lo bueno de hacer todo el programa de forma modular, es que ahora simplemente copiamos y pegamos nuestro metodo anterior agregarRegistro(); y lo adaptamos para que funcione con cola.insert(Encontrado);
+
+Bien, en este punto la cola solo añadira a alguien a la cola si ya existe en el historial.
+
+    
+    private static void agregarPacienteCola() {
+    Scanner scanner = new Scanner (System.in);   
+        System.out.print("Ingrese el id del paciente que quiere agregar a la cola: ");
+        int idAsignado = Integer.parseInt(scanner.nextLine());
+
+        Paciente pacienteTemporal = new Paciente(idAsignado, "", "", 0, "", "", "", "");
+        Paciente Encontrado = historial.search(pacienteTemporal);
 
 
+        if (Encontrado != null){        
+            cola.insert(Encontrado);
+            System.out.println("Paciente agregado a la cola.");
+            System.out.println(Encontrado);
+        }
+        else {
+            System.out.println("Paciente no encontrado en el historial.");
+        }
+    }
 
+Perfecto, con esto implementado ya funciona perfecto la insercion, pero no hay forma de verlo. Tendremos que adaptar el inorder para que funcione con pacientes y que nos enliste los pacientes en cola. Hacemos lo mismo que hicismos en el arbol binario. adapatamos el indorder para que funcione con pacientes 
+
+    public void inorder() {
+        System.out.println("Rgistros en el sistema:");
+        recursiveInorder(root);
+        System.out.println();
+    }
+
+    private void recursiveInorder(Node current) {
+        if (current != null) {
+            recursiveInorder(current.left);
+            System.out.println(current.paciente + " ");
+            recursiveInorder(current.right);
+        }
+    }
+}
+
+Para este punto ya tenemos 3. Ver cola actual. que no nos lo piden en el enunciado pero es clave como adicion.
+
+Ok, entonces ahora trabajaremos con 
+
+· Buscar un paciente en espera (mediante su id).
+
+creamos un metodo llamado search en el AVL, en esencia funcionara igual que el search del arbol binario de busqueda, aprovechando que AVL tambien mantiene la propieda de orden binario 
+
+public Paciente search(Paciente paciente) Queda igual pero con los cambios adaptados a pacientes
+
+y el private Paciente recursiveSearch(NodeAVLTree current, int id) para que funcione con el nodo del arbol AVL y el id 
+
+en esencia lo mismo que en el binario
+
+private Paciente recursiveSearch(NodeAVLTree current, int id) {
+        // Caso base: Si el árbol está vacío o la clave se encuentra en la raíz
+        if (current == null) {
+            return null; // no se encontro
+        } 
+        
+        if (current.paciente.getId() == id) { // se encontro
+            return current.paciente;
+        }
+       
+        // Si la clave es menor que la clave de la raíz, buscar en el subárbol izquierdo
+        if (id < current.paciente.getId()) {
+            return recursiveSearch(current.left, id);
+        }
+        // Si la clave es mayor que la clave de la raíz, buscar en el subárbol derecho
+        else {
+            return recursiveSearch(current.right, id);
+        }
+    }
+
+Y lo demas igual, va recorriendo izquierda y derecha hasta encontrar el paciente.
+
+y nuestro metodo en la main queda asi 
+
+    private static void buscarPacienteCola() {
+        Scanner scanner = new Scanner (System.in);   
+        System.out.print("Ingrese el id del registro del paciente: ");
+        int idAsignado = Integer.parseInt(scanner.nextLine());
+
+        Paciente pacienteTemporal = new Paciente(idAsignado, "", "", 0, "", "", "", "");
+        Paciente Encontrado = cola.search(pacienteTemporal);
+        
+        if (Encontrado != null){        
+            cola.search(Encontrado);
+            System.out.println("Paciente en la cola encontrado.");
+            System.out.println(Encontrado);
+        }
+        else {
+            System.out.println("paciente inexistente en la cola.");
+        }
+    }
+
+que si lo comparamos con 
+
+        private static void buscarRegistro() {
+        Scanner scanner = new Scanner (System.in);   
+        System.out.print("Ingrese el id del registro del paciente: ");
+        int idAsignado = Integer.parseInt(scanner.nextLine());
+
+        Paciente pacienteTemporal = new Paciente(idAsignado, "", "", 0, "", "", "", "");
+        Paciente Encontrado = historial.search(pacienteTemporal);
+
+        // no le podemos meter un id, porque espera una clase paciente.
+
+        if (Encontrado != null){        
+            historial.search(Encontrado);
+            System.out.println("Paciente encontrado.");
+            System.out.println(Encontrado);
+        }
+        else {
+            System.out.println("paciente no encontrado.");
+        }
+    }
+
+es practicamente lo mismo, pero este buscara el usuario si existe en cola (arbol AVL) este lo mostrara con todos sus atributos.
+
+y bien, como ultima adicion seria el modulo de 
+
+· Eliminar un paciente de la cola (mediante su id, por ser atendido, etc.).
+
+En el menuCola se encuentra de 4to lugar y es 
+
+System.out.println("4. Eliminar paciente de la cola.");
+
+                case 4:
+                    eliminarPacienteCola(); 
+                    break;
+
+Funcionara como los otros 2 metodos:
+
+    private static void eliminarPacienteCola() {
+        Scanner scanner = new Scanner (System.in);   
+        System.out.print("Ingrese el id del registro del paciente: ");
+        int idAsignado = Integer.parseInt(scanner.nextLine());
+
+        Paciente pacienteTemporal = new Paciente(idAsignado, "", "", 0, "", "", "", "");
+        Paciente Encontrado = cola.search(pacienteTemporal);
+        
+        if (Encontrado != null){        
+            cola.delete(Encontrado);
+            System.out.println("Paciente en la cola eliminado.");
+        }
+        else {
+            System.out.println("paciente inexistente en la cola.");
+        }
+    }
+
+Se le pasara un id
+
+> lo buscara en la cola: Paciente Encontrado = cola.search(pacienteTemporal);
+> al encontrarlo: cola.delete(Encontrado);
+
+Entonces del arbol binario de busqueda buscamos el metodo delete.
+
+Y lo adaptamos para que funcione con pacientes. Pero aqui no lo podemos hacer asi como asi, al eliminarse, debe balancearse el arbol AVL. nuestro metodo quedo asi
+
+[Esta parte igual del arbol binario]
+
+ublic void delete(Paciente paciente) {
+        root = recursiveDelete(root, paciente.getId());
+    }
+
+    private NodeAVLTree recursiveDelete(NodeAVLTree current, int id) {
+        if (current == null) {
+            return null;
+        }
+
+        // Buscar el nodo a eliminar
+        if (id < current.paciente.getId()) {
+            current.left = recursiveDelete(current.left, id);
+        } else if (id > current.paciente.getId()) {
+            current.right = recursiveDelete(current.right, id);
+        } else {
+            // Nodo encontrado
+
+            // Caso 1: Un solo hijo o ninguno
+            if (current.left == null) {
+                return current.right;
+            } else if (current.right == null) {
+                return current.left;
+            }
+
+Pero aqui cambia 
+
+// Caso 2: Dos hijos
+            NodeAVLTree sucesor = minValue(current.right);
+            current.paciente = sucesor.paciente; // Reemplazar con el paciente sucesor
+            current.right = recursiveDelete(current.right, sucesor.paciente.getId());
+        }
+
+        // Actualizar altura
+        current.height = 1 + max(height(current.left), height(current.right));
+
+        // Rebalancear
+        int balance = getBalance(current);
+
+        // Casos de desbalanceo
+        if (balance > 1 && getBalance(current.left) >= 0)
+            return rightRotate(current);
+        if (balance > 1 && getBalance(current.left) < 0) {
+            current.left = leftRotate(current.left);
+            return rightRotate(current);
+        }
+        if (balance < -1 && getBalance(current.right) <= 0)
+            return leftRotate(current);
+        if (balance < -1 && getBalance(current.right) > 0) {
+            current.right = rightRotate(current.right);
+            return leftRotate(current);
+        }
+
+        return current;
+
+Basicamente es el metodo que lo balanceara buscando que todo quede en 1 y 0 y no hayan mas balances criticos en la izquierda y derecha. haciendo int balance = getBalance(current); cada vez hasta que quede balanceado
+
+el metodo que avalua el balance es 
+
+    private int getBalance(NodeAVLTree N) {
+        if (N == null) {
+            return 0;
+        }
+        return height(N.left) - height(N.right);
+    }
+
+Y ya lo trae la clase AVL que nos proporciono el profesor.
+            
 
 

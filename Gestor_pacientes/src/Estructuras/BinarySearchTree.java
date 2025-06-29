@@ -63,21 +63,23 @@ public class BinarySearchTree {
         }
     }
 
-//    // Recorrido Inorden (Izquierda -> Raíz -> Derecha)
-//    // Para un BST, un recorrido inorden produce los elementos en orden ascendente.
-//    public void inorder() {
-//        System.out.print("Inorden BST: ");
-//        recursiveInorder(root);
-//        System.out.println();
-//    }
-//
-//    private void recursiveInorder(Node current) {
-//        if (current != null) {
-//            recursiveInorder(current.left);
-//            System.out.print(current.key + " ");
-//            recursiveInorder(current.right);
-//        }
-//    }
+    // Recorrido Inorden (Izquierda -> Raíz -> Derecha)
+    // Para un BST, un recorrido inorden produce los elementos en orden ascendente.
+    public void inorder() {
+        System.out.println("Rgistros en el sistema:");
+        recursiveInorder(root);
+        System.out.println();
+    }
+
+    private void recursiveInorder(Node current) {
+        if (current != null) {
+            recursiveInorder(current.left);
+            System.out.println(current.paciente + " ");
+            recursiveInorder(current.right);
+        }
+    }
+}
+
 //    
 //    // Recorrido Inorden Inverso (Derecha -> Raíz -> Izquierda)
 //    // Para un BST, un recorrido inorden inverso produce los elementos en orden descendente.
@@ -94,7 +96,7 @@ public class BinarySearchTree {
 //            reverseRecursiveInorder(current.left);
 //        }
 //    }
-}
+
 
 
 //

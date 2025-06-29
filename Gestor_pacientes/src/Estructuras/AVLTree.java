@@ -1,20 +1,20 @@
 package Estructuras;
 
 public class AVLTree {
+    
     static class NodeAVLTree {
-        int key;
+        Paciente paciente;
         int height; // Altura del nodo (distancia desde este nodo a la hoja más lejana)
         NodeAVLTree left, right;
 
-        public NodeAVLTree(int item) {
-            key = item;
+        public NodeAVLTree(Paciente paciente) {
+            this.paciente = paciente;
             height = 1; // Un nuevo nodo es una hoja, por lo que su altura inicial es 1
             left = right = null;
         }
     }
-
+    
     NodeAVLTree root; // La raíz del árbol AVL
-
 
     public AVLTree() {
         root = null;
@@ -88,21 +88,21 @@ public class AVLTree {
     }
 
     // Método principal para insertar un nuevo nodo.
-    public void insert(int key) {
-        root = recursiveInsert(root, key);
+    public void insert(Paciente paciente) {
+        root = recursiveInsert(root, paciente);
     }
 
     // Método recursivo para insertar un nodo y rebalancear el árbol AVL.
-    private NodeAVLTree recursiveInsert(NodeAVLTree current, int key) {
+    private NodeAVLTree recursiveInsert(NodeAVLTree current, Paciente paciente) {
         // 1. Realiza la inserción normal de BST
         if (current == null) {
-            return new NodeAVLTree(key);
+            return new NodeAVLTree(paciente);
         }
 
-        if (key < current.key) {
-            current.left = recursiveInsert(current.left, key);
-        } else if (key > current.key) {
-            current.right = recursiveInsert(current.right, key);
+        if (paciente.getId() < current.paciente.getId()) {
+            current.left = recursiveInsert(current.left, paciente);
+        } else if (paciente.getId()> current.paciente.getId()) {
+            current.right = recursiveInsert(current.right, paciente);
         } else { // Claves duplicadas no permitidas en este ejemplo
             return current;
         }
@@ -116,23 +116,23 @@ public class AVLTree {
         // 4. Si el nodo se desbalanceó, hay 4 casos:
 
         // Caso Izquierda-Izquierda (LL)
-        if (balance > 1 && key < current.left.key) {
+        if (balance > 1 && paciente.getId() < current.left.paciente.getId()) {
             return rightRotate(current);
         }
 
         // Caso Derecha-Derecha (RR)
-        if (balance < -1 && key > current.right.key) {
+        if (balance < -1 && paciente.getId() > current.right.paciente.getId()) {
             return leftRotate(current);
         }
 
         // Caso Izquierda-Derecha (LR)
-        if (balance > 1 && key > current.left.key) {
+        if (balance > 1 && paciente.getId() > current.left.paciente.getId()) {
             current.left = leftRotate(current.left);
             return rightRotate(current);
         }
 
         // Caso Derecha-Izquierda (RL)
-        if (balance < -1 && key < current.right.key) {
+        if (balance < -1 && paciente.getId() < current.right.paciente.getId()) {
             current.right = rightRotate(current.right);
             return leftRotate(current);
         }
@@ -140,10 +140,10 @@ public class AVLTree {
         // Retorna el nodo (sin cambios si está balanceado)
         return current;
     }
-
+    
     // Recorrido Inorden (Izquierda -> Raíz -> Derecha)
     public void inorder() {
-        System.out.print("Inorden AVL: ");
+        System.out.println("Mostrando cola actual: ");
         recursiveInorder(root);
         System.out.println();
     }
@@ -151,8 +151,98 @@ public class AVLTree {
     private void recursiveInorder(NodeAVLTree current) {
         if (current != null) {
             recursiveInorder(current.left);
-            System.out.print(current.key + " ");
+            System.out.println(current.paciente + " ");
             recursiveInorder(current.right);
         }
     }
+    
+    // Método principal para buscar un nodo.
+    public Paciente search(Paciente paciente) {
+        return recursiveSearch(root, paciente.getId());
+    }
+    
+    // Método recursivo para buscar un nodo en el arbol AVL.
+    // Aprovecha la propiedad de orden del arbol AVL.
+    private Paciente recursiveSearch(NodeAVLTree current, int id) {
+        // Caso base: Si el árbol está vacío o la clave se encuentra en la raíz
+        if (current == null) {
+            return null; // no se encontro
+        } 
+        
+        if (current.paciente.getId() == id) { // se encontro
+            return current.paciente;
+        }
+       
+        // Si la clave es menor que la clave de la raíz, buscar en el subárbol izquierdo
+        if (id < current.paciente.getId()) {
+            return recursiveSearch(current.left, id);
+        }
+        // Si la clave es mayor que la clave de la raíz, buscar en el subárbol derecho
+        else {
+            return recursiveSearch(current.right, id);
+        }
+    }
+    
+    public void delete(Paciente paciente) {
+        root = recursiveDelete(root, paciente.getId());
+    }
+
+    private NodeAVLTree recursiveDelete(NodeAVLTree current, int id) {
+        if (current == null) {
+            return null;
+        }
+
+        // Buscar el nodo a eliminar
+        if (id < current.paciente.getId()) {
+            current.left = recursiveDelete(current.left, id);
+        } else if (id > current.paciente.getId()) {
+            current.right = recursiveDelete(current.right, id);
+        } else {
+            // Nodo encontrado
+
+            // Caso 1: Un solo hijo o ninguno
+            if (current.left == null) {
+                return current.right;
+            } else if (current.right == null) {
+                return current.left;
+            }
+
+            // Caso 2: Dos hijos
+            NodeAVLTree sucesor = minValue(current.right);
+            current.paciente = sucesor.paciente; // Reemplazar con el paciente sucesor
+            current.right = recursiveDelete(current.right, sucesor.paciente.getId());
+        }
+
+        // Actualizar altura
+        current.height = 1 + max(height(current.left), height(current.right));
+
+        // Rebalancear
+        int balance = getBalance(current);
+
+        // Casos de desbalanceo
+        if (balance > 1 && getBalance(current.left) >= 0)
+            return rightRotate(current);
+        if (balance > 1 && getBalance(current.left) < 0) {
+            current.left = leftRotate(current.left);
+            return rightRotate(current);
+        }
+        if (balance < -1 && getBalance(current.right) <= 0)
+            return leftRotate(current);
+        if (balance < -1 && getBalance(current.right) > 0) {
+            current.right = rightRotate(current.right);
+            return leftRotate(current);
+        }
+
+        return current;
+    }
+
+    // Encuentra el nodo con el menor ID (usado como sucesor inorden)
+    private NodeAVLTree minValue(NodeAVLTree node) {
+        NodeAVLTree current = node;
+        while (current.left != null) {
+            current = current.left;
+        }
+        return current;
+    }
 }
+
