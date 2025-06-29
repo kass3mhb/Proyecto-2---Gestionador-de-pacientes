@@ -1,4 +1,4 @@
-[bitacora 27/06/2025 11:30pm - Kassem Hojeige] 
+[bitacora 27/06/2025 11:30pm] 
 
 He montado lo que vendria siendo todo lo que es la base del proyecto, cree la aplicacion de NetBeans "Gestor_pacientes" con dos paquetes: gestor_pacientes y Estructuras.
 
@@ -13,3 +13,135 @@ Teniendo ya todo ordenado y estructurado he programado el primer metodo de la pa
  System.out.println("3. Salir del sistema.");
 
 La idea es que el usuario dependiendo de lo que elija la opcion entre en un Switch y dependiendo de lo que elija corra el metodo correspondiente, si elije el 1 que corra el metodo para gestionar los historicos; Asi mismo con la opcion 2. 
+
+[bitacora 28/06/2025 9:30pm] 
+
+El dia de hoy lo que se hizo fue, analizar un poco el desarrollo, nos dimos cuenta que la clase cola no es necesaria, con el arbol AVL basta para la parte 2. Teniendo esto en cuenta creamos la clase Paciente con los atributos necesarios.
+
+    private int id; //datos personales    
+    private String nombre;    
+    private String sexo;
+    private int edad;    
+    private String fechaNacimiento; 
+    
+    //registros
+    private String diagnostico;
+    private String motivo;
+    private String prioridad;
+
+Con esa clase ya definida, empezamos a arreglar el arbol binario de busqueda, contenida en la clase BinarySearchTree.java, modificando su nodo, que ya no se cree a partir de numeros enteros si no que almacene una clase Paciente, teniendo eso ya arreglado nos lanzamos ahora si a BinarySearchTree.java donde comentamos los metodos que todavia no vamos a usar y solo nos quedamos con insert y search. Los cuales adaptamos para que funcione con clases Paciente y se se hara una comparacion o busqueda que sea en base al atributo id del Paciente (que es en base a esos ids que esta ordenado todo en el arbol)
+
+En la clase main hicimos el segundo menu, el menu de expedientes, donde se tratara completamente este arbol. 
+
+Hemos definido antes como globales 1 variable y un objeto del arbol que antes importamos.
+
+import Estructuras.Paciente;
+import Estructuras.BinarySearchTree;
+
+static BinarySearchTree historial = new BinarySearchTree();
+static int expedienteId = 0;
+
+Teniendo eso listo, empezamos con la siguiente interfaz
+
+private static void menuExpedientes() {
+    Scanner scanner = new Scanner (System.in);
+        int opcion = 0;
+        do {         
+        System.out.println("Usted ha seleccionado: Gestionar registro histórico de expedientes.");
+        System.out.println("1. Registrar un nuevo expediente.");
+        System.out.println("2. Buscar un registro.");
+        System.out.println("3. Listar todos los registros.");
+        System.out.println("4. Regresar al menu principal.");
+        System.out.print("Seleccione una opcion: ");
+        
+        opcion =  Integer.parseInt(scanner.nextLine()); 
+          switch (opcion) {
+              case 1:
+                  registrarPaciente();
+                  break;
+
+En donde nuestro registrarPaciente(); tendra el formulario donde:
+
+1. Se creara la clase Paciente con los datos correspondientes y MUY IMPORTANTE estara el expedienteId++; que hara que por cada paciente registrado su id de atributo aumente 1+ haciendo asi que con cada ejecucion de este metodo el garantice que el siguiente paciente sea un numero mayor. Una vez la clase haya sido creada correctamente.
+
+        // con estos datos recopilados, montamos la clase
+        Paciente paciente = new Paciente (expedienteId, nombre, sexo, edad, fechaNacimiento, motivo, diagnostico, prioridad);
+        System.out.println(paciente.toString()); 
+
+2. En base a ese paciente registrado, llamamos al arbol llamado historial con su metodo insert
+
+        // y en base a ese paciente registrado, lo guardamos en el arbol
+        historial.insert(paciente);
+
+Registrando asi a los pacientes en el arbol por su id, que incrementa con cada ejecucion.
+
+Luego pasamos con: 
+
+        case 2:
+        	buscarRegistro();
+        break;
+
+donde el metodo buscar registro, tendra una funcionalidad parecida a la de insertar, preguntara al usuario el id del usuario que quiere buscar, si esta registrado muestra sus datos, si no (la busqueda devolvio null), le dice que no hay usuario con ese id y lo devuelve al menu. Haciendo uso de una clase temporal llamada paciente temporal que solo usaremos para comparar con algun paciente del arbol ya que no podemos comparar un numero entero si el arbol solo recibe clases Pacientes.
+
+        System.out.print("Ingrese el id del registro del paciente: ");
+        int idAsignado = Integer.parseInt(scanner.nextLine());
+
+        Paciente pacienteTemporal = new Paciente(idAsignado, "", "", 0, "", "", "", "");
+        Paciente Encontrado = historial.search(pacienteTemporal);
+
+        // no le podemos meter un id, porque espera una clase paciente.
+        historial.search(Encontrado);
+        if (Encontrado != null){
+            System.out.println("Paciente encontrado.");
+            System.out.println(Encontrado);
+        }
+
+Para el search hemos usado IA para identificar que comparar con que, en este caso seria el id que le damos como parametro con el paciente que tambien le damos como parametro, si hay coincidencia, nos devuelve el paciente con todos sus datos. Justificada esta el uso porque casi que el 90% de este commit fue hecho hasta que nos bloqueamos en esa parte.
+
+Pasamos de 
+
+    private boolean recursiveSearch(Node current, int key) {
+        // Caso base: Si el árbol está vacío o la clave se encuentra en la raíz
+        if (current == null || current.key == key) {
+            return current != null; // True si se encontró, false si current es null
+        }
+
+        // Si la clave es menor que la clave de la raíz, buscar en el subárbol izquierdo
+        if (key < current.key) {
+            return recursiveSearch(current.left, key);
+        }
+        // Si la clave es mayor que la clave de la raíz, buscar en el subárbol derecho
+        else {
+            return recursiveSearch(current.right, key);
+        }
+    }
+
+a
+
+    private Paciente recursiveSearch(Node current, int id) {
+        // Caso base: Si el árbol está vacío o la clave se encuentra en la raíz
+        if (current == null) {
+            return null; // no se encontro
+        } 
+        
+        if (current.paciente.getId() == id) { // se encontro
+            return current.paciente;
+        }
+       
+        // Si la clave es menor que la clave de la raíz, buscar en el subárbol izquierdo
+        if (id < current.paciente.getId()) {
+            return recursiveSearch(current.left, id);
+        }
+        // Si la clave es mayor que la clave de la raíz, buscar en el subárbol derecho
+        else {
+            return recursiveSearch(current.right, id);
+        }
+    }
+
+Y en cuanto a lo demas, preguntas muy generales en cuanto al uso de correcto de algunas metodlogias en NetBeans y el propio java
+
+
+
+
+
+

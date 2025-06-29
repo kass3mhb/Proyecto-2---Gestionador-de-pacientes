@@ -1,11 +1,11 @@
 package Estructuras;
 
 public class Node {
-        int key;
+    Paciente paciente;
     Node left, right;
 
-    public Node(int item) {
-        key = item;
+    public Node(Paciente paciente) {
+        this.paciente = paciente;
         left = right = null;
     }
 }
