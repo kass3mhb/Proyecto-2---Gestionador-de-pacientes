@@ -458,4 +458,125 @@ el metodo que avalua el balance es
 Y ya lo trae la clase AVL que nos proporciono el profesor.
             
 
+Commit 3 - Gestionador de expedientes y Cola de atencion activa lista
 
+El gestionador de historico de expedientes esta 100% funcional, se termino su ultimo modulo que le faltaba, se adapato el inorder para que funcione con pacientes.
+
+· Listar todos los registros. 
+
+Se ha adaptado el arbol AVL para que funcione con pacientes tambien, 
+
+· Registrar/Actualizar un paciente en espera (mediante su id).
+· Buscar un paciente en espera (mediante su id).
+· Eliminar un paciente de la cola (mediante su id, por ser atendido, etc.).
+
+Gracias a la adaptacion funcionan esos 3 requisitos.
+
+
+[bitacora 29/06/2025 8:30pm] 
+
+Para este punto, el programa esta 100% funcional, pero nos falta validaciones, en los menus, cuando nos piden numeros de 1 al 4 y el usuario mete una letra, se cierra la ejecucion, Al igual cuando que cuando nos piden el id en en muchos metodos de busqueda o para eliminar, si metemos una letra se rompe, para solucionarlo de forma modular hemos puesto este codigo en
+
+los menus:
+
+        try {
+            opcion = Integer.parseInt(scanner.nextLine());
+        } catch (NumberFormatException e) {
+            System.out.print("Elija un valor válido.");
+            opcion = -1; 
+        }
+
+y en los case default 
+
+              default:
+                  System.out.println("(Entrada numerica del 1 al 3)\n");
+                  break;
+                  }
+        } while (opcion != 3);
+
+Permitiendo asi que la ejecucion del menu se repita hasta que haya una entrada valida, estos aparecen En menu(), menuRegistro() y menuCola();
+
+para la busqueda o eliminacion de pacientes en los arboles, siempre piden el id
+
+lo que hicimos fue colocar 
+
+        int idAsignado = -1;
+        while (idAsignado < 0) {
+            try {
+                System.out.print("Ingrese el id del registro del paciente: ");
+                idAsignado = Integer.parseInt(scanner.nextLine());
+                if (idAsignado < 0) {
+                    System.out.println("ID inválido. Debe ser un número positivo.");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Debe ingresar un número entero válido.");
+            }
+        }
+
+Aparece en BuscarRegistro(), agregarPacienteCola(), buscarPacienteCola(), eliminarPacienteCola();
+
+Por ultimo, el formulario para ingresar un nuevo paciente al historial
+
+   private static void registrarPaciente() {
+        Scanner scanner = new Scanner (System.in);
+        expedienteId++;
+        System.out.println("[Formulario] registrar nuevo paciente.");
+        //aqui vamos a registrar todos los datos del paciente, nombre, sexo, edad, fecha de nacimiento, motivo, diagnostico, prioridad (el id se autoasigna)
+        String nombre;
+        do {
+            System.out.print("Ingrese el nombre completo del paciente: ");
+            nombre = scanner.nextLine().trim();
+        } while (nombre.isEmpty());
+
+        String sexo;
+        do {
+            System.out.print("Ingrese el sexo del paciente (H/M): ");
+            sexo = scanner.nextLine().trim().toUpperCase();
+        } while (!sexo.equals("H") && !sexo.equals("M"));
+
+        int edad = -1;
+        while (edad < 0) {
+            try {
+                System.out.print("Ingrese la edad del paciente: ");
+                edad = Integer.parseInt(scanner.nextLine());
+                if (edad < 0) System.out.println("Edad inválida.");
+            } catch (NumberFormatException e) {
+                System.out.println("Debe ingresar un número entero válido.");
+            }
+        }
+
+        String fechaNacimiento;
+        do {
+            System.out.print("Ingrese la fecha de nacimiento: ");
+            fechaNacimiento = scanner.nextLine().trim();
+        } while (fechaNacimiento.isEmpty());
+
+        String motivo;
+        do {
+            System.out.print("Ingrese el motivo de la consulta: ");
+            motivo = scanner.nextLine().trim();
+        } while (motivo.isEmpty());
+
+        String diagnostico;
+        do {
+            System.out.print("Ingrese el diagnóstico: ");
+            diagnostico = scanner.nextLine().trim();
+        } while (diagnostico.isEmpty());
+
+        String prioridad;
+        do {
+            System.out.print("Ingrese la prioridad (baja, media o alta): ");
+            prioridad = scanner.nextLine().trim().toLowerCase();
+        } while (!prioridad.equals("baja") && !prioridad.equals("media") && !prioridad.equals("alta"));
+
+        // con estos datos recopilados, montamos la clase
+        Paciente paciente = new Paciente (expedienteId, nombre, sexo, edad, fechaNacimiento, motivo, diagnostico, prioridad);
+        System.out.println(paciente.toString()); 
+        // y en base a ese paciente registrado, lo guardamos en el arbol
+        historial.insert(paciente);
+        System.out.println("Paciente registrado correctamente:");
+        }
+
+Guardamos las entradas luego de que las condiciones se cumplan, en todos no se puede dejar vacio el campo, en los numericos como la edad no se puede añadir letras o numeros negativos y para valores unicos como H o M, o prioridad baja media o alta, no te dejara continuar hasta meter bien los valores. En cuanto a las entradas a los arboles, si no metes una letra no te deja avanzar hasta que metas un numero enetero y si el numero no coincide con alguno del arbol, el arbol internamente tiene que si el valor es nulo, te manda una excepcion.
+
+Y por ultimo el system.exit() en menu.

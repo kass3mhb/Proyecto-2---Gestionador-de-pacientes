@@ -26,7 +26,13 @@ public class Main {
         System.out.println("");
         System.out.print("Seleccione una opcion: ");
         
-        opcion =  Integer.parseInt(scanner.nextLine()); // <- terminar de validarlo 
+        try {
+            opcion = Integer.parseInt(scanner.nextLine());
+        } catch (NumberFormatException e) {
+            System.out.print("Elija un valor válido.");
+            opcion = -1; 
+        }
+        
           switch (opcion) {
               case 1:
                   System.out.println("Usted ha seleccionado: Gestionar registro histórico de expedientes.");
@@ -40,7 +46,7 @@ public class Main {
                   System.out.println("Ha salido del sistema.");
                   break;                  
               default:
-                  System.out.println("opcion invalida.");
+                  System.out.println("(Entrada numerica del 1 al 3)\n");
                   break;
                   }
         } while (opcion != 3);
@@ -55,25 +61,30 @@ public class Main {
         System.out.println("3. Listar todos los registros.");
         System.out.println("4. Regresar al menu principal.");
         System.out.print("Seleccione una opcion: ");
+        try {
+            opcion = Integer.parseInt(scanner.nextLine());
+        } catch (NumberFormatException e) {
+            System.out.println("Elija un valor válido.\n");
+            opcion = -1;
+        }
         
-        opcion =  Integer.parseInt(scanner.nextLine()); 
-          switch (opcion) {
-              case 1:
-                  registrarPaciente();
-                  break;
-              case 2:
-                  buscarRegistro();
-                  break;              
-              case 3:
-                   historial.inorder();
-                  break;                  
-              case 4:
-                   menu();
-                  break;  
-              default:
-                    System.out.println("opcion invalida.");
-                  break;
-                  }
+        switch (opcion) {
+            case 1:
+                registrarPaciente();
+                break;
+            case 2:
+                buscarRegistro();
+                break;              
+            case 3:
+                historial.inorder();
+                break;                  
+            case 4:
+                menu();
+                break;  
+            default:
+                System.out.print(" (Entrada numerica del 1 al 4)\n");
+                break;
+                }
         } while (opcion != 4);
     }
     
@@ -82,39 +93,75 @@ public class Main {
         expedienteId++;
         System.out.println("[Formulario] registrar nuevo paciente.");
         //aqui vamos a registrar todos los datos del paciente, nombre, sexo, edad, fecha de nacimiento, motivo, diagnostico, prioridad (el id se autoasigna)
-        System.out.println("Ingrese el nombre completo del paciente a registrar.");
-        String nombre = scanner.nextLine();
+        String nombre;
+        do {
+            System.out.print("Ingrese el nombre completo del paciente: ");
+            nombre = scanner.nextLine().trim();
+        } while (nombre.isEmpty());
 
-        System.out.println("Ingrese el sexo del paciente a registrar. (Ingrese los caracteres H o M)");
-        String sexo = scanner.nextLine();
+        String sexo;
+        do {
+            System.out.print("Ingrese el sexo del paciente (H/M): ");
+            sexo = scanner.nextLine().trim().toUpperCase();
+        } while (!sexo.equals("H") && !sexo.equals("M"));
 
-        System.out.println("Ingrese la edad del paciente a registrar.");
-        int edad = Integer.parseInt(scanner.nextLine());
+        int edad = -1;
+        while (edad < 0) {
+            try {
+                System.out.print("Ingrese la edad del paciente: ");
+                edad = Integer.parseInt(scanner.nextLine());
+                if (edad < 0) System.out.println("Edad inválida.");
+            } catch (NumberFormatException e) {
+                System.out.println("Debe ingresar un número entero válido.");
+            }
+        }
 
-        System.out.println("Ingrese la fecha de nacimiento del paciente a registrar.");
-        String fechaNacimiento = scanner.nextLine();
-        // aqui hay que validarlo bien por dia, mes y año
+        String fechaNacimiento;
+        do {
+            System.out.print("Ingrese la fecha de nacimiento: ");
+            fechaNacimiento = scanner.nextLine().trim();
+        } while (fechaNacimiento.isEmpty());
 
-        System.out.println("Ingrese el motivo por el cual acude el paciente a registrar.");
-        String motivo = scanner.nextLine();
+        String motivo;
+        do {
+            System.out.print("Ingrese el motivo de la consulta: ");
+            motivo = scanner.nextLine().trim();
+        } while (motivo.isEmpty());
 
-        System.out.println("Ingrese el diagnostico del paciente a registrar. (puede editarse despues)");
-        String diagnostico = scanner.nextLine();   
+        String diagnostico;
+        do {
+            System.out.print("Ingrese el diagnóstico: ");
+            diagnostico = scanner.nextLine().trim();
+        } while (diagnostico.isEmpty());
 
-        System.out.println("Ingrese la prioridad del paciente a registrar. (Baja, media o alta)");
-        String prioridad = scanner.nextLine();  
+        String prioridad;
+        do {
+            System.out.print("Ingrese la prioridad (baja, media o alta): ");
+            prioridad = scanner.nextLine().trim().toLowerCase();
+        } while (!prioridad.equals("baja") && !prioridad.equals("media") && !prioridad.equals("alta"));
 
         // con estos datos recopilados, montamos la clase
         Paciente paciente = new Paciente (expedienteId, nombre, sexo, edad, fechaNacimiento, motivo, diagnostico, prioridad);
         System.out.println(paciente.toString()); 
         // y en base a ese paciente registrado, lo guardamos en el arbol
         historial.insert(paciente);
+        System.out.println("Paciente registrado correctamente:");
         }
 
         private static void buscarRegistro() {
         Scanner scanner = new Scanner (System.in);   
-        System.out.print("Ingrese el id del registro del paciente: ");
-        int idAsignado = Integer.parseInt(scanner.nextLine());
+        int idAsignado = -1;
+        while (idAsignado < 0) {
+            try {
+                System.out.print("Ingrese el id del registro del paciente: ");
+                idAsignado = Integer.parseInt(scanner.nextLine());
+                if (idAsignado < 0) {
+                    System.out.println("ID inválido. Debe ser un número positivo.");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Debe ingresar un número entero válido.");
+            }
+        }
 
         Paciente pacienteTemporal = new Paciente(idAsignado, "", "", 0, "", "", "", "");
         Paciente Encontrado = historial.search(pacienteTemporal);
@@ -144,7 +191,12 @@ public class Main {
             System.out.println("5. Regresar al menú principal.");
             System.out.print("Seleccione una opción: ");
 
+            try {
             opcion = Integer.parseInt(scanner.nextLine());
+            } catch (NumberFormatException e) {
+                System.out.println("Elija un valor válido.\n");
+                opcion = -1; // evita que entre en cualquier case válido
+            }
 
             switch (opcion) {
                 case 1:
@@ -164,7 +216,7 @@ public class Main {
                     break;                    
                     
                 default:
-                    System.out.println("Opción inválida.");
+                    System.out.println(" (Entrada numerica del 1 al 5)\n");
                     break;
             }
         } while (opcion != 4);
@@ -172,13 +224,22 @@ public class Main {
     
     private static void agregarPacienteCola() {
     Scanner scanner = new Scanner (System.in);   
-        System.out.print("Ingrese el id del paciente que quiere agregar a la cola: ");
-        int idAsignado = Integer.parseInt(scanner.nextLine());
+    int idAsignado = -1;
 
-        Paciente pacienteTemporal = new Paciente(idAsignado, "", "", 0, "", "", "", "");
-        Paciente Encontrado = historial.search(pacienteTemporal);
+    while (idAsignado < 0) {
+        try {
+            System.out.print("Ingrese el id del paciente que quiere agregar a la cola: ");
+            idAsignado = Integer.parseInt(scanner.nextLine());
+            if (idAsignado < 0) {
+                System.out.println("ID inválido. Debe ser un número positivo.");
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Debe ingresar un número entero válido.");
+        }
+    }
 
-
+    Paciente pacienteTemporal = new Paciente(idAsignado, "", "", 0, "", "", "", "");
+    Paciente Encontrado = historial.search(pacienteTemporal);
         if (Encontrado != null){        
             cola.insert(Encontrado);
             System.out.println("Paciente agregado a la cola.");
@@ -191,12 +252,22 @@ public class Main {
     
     private static void buscarPacienteCola() {
         Scanner scanner = new Scanner (System.in);   
-        System.out.print("Ingrese el id del registro del paciente: ");
-        int idAsignado = Integer.parseInt(scanner.nextLine());
+        int idAsignado = -1;
 
-        Paciente pacienteTemporal = new Paciente(idAsignado, "", "", 0, "", "", "", "");
-        Paciente Encontrado = cola.search(pacienteTemporal);
-        
+        while (idAsignado < 0) {
+            try {
+                System.out.print("Ingrese el id del registro del paciente: ");
+                idAsignado = Integer.parseInt(scanner.nextLine());
+                if (idAsignado < 0) {
+                    System.out.println("ID inválido. Debe ser un número positivo.");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Debe ingresar un número entero válido.");
+            }
+        }
+
+    Paciente pacienteTemporal = new Paciente(idAsignado, "", "", 0, "", "", "", "");
+    Paciente Encontrado = cola.search(pacienteTemporal);
         if (Encontrado != null){        
             cola.search(Encontrado);
             System.out.println("Paciente en la cola encontrado.");
@@ -209,12 +280,21 @@ public class Main {
     
     private static void eliminarPacienteCola() {
         Scanner scanner = new Scanner (System.in);   
-        System.out.print("Ingrese el id del registro del paciente: ");
-        int idAsignado = Integer.parseInt(scanner.nextLine());
+        int idAsignado = -1;
 
-        Paciente pacienteTemporal = new Paciente(idAsignado, "", "", 0, "", "", "", "");
-        Paciente Encontrado = cola.search(pacienteTemporal);
-        
+        while (idAsignado < 0) {
+            try {
+                System.out.print("Ingrese el id del registro del paciente: ");
+                idAsignado = Integer.parseInt(scanner.nextLine());
+                if (idAsignado < 0) {
+                    System.out.println("ID inválido. Debe ser un número positivo.");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Debe ingresar un número entero válido.");
+            }
+        }
+    Paciente pacienteTemporal = new Paciente(idAsignado, "", "", 0, "", "", "", "");
+    Paciente Encontrado = cola.search(pacienteTemporal);
         if (Encontrado != null){        
             cola.delete(Encontrado);
             System.out.println("Paciente en la cola eliminado.");
